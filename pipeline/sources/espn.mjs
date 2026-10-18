@@ -12,7 +12,7 @@ const STANDINGS = 'https://site.api.espn.com/apis/v2/sports/soccer'
 
 let lastCall = 0
 async function get(url) {
-  const wait = lastCall + Number(process.env.ESPN_INTERVAL_MS ?? 1000) - Date.now()
+  const wait = lastCall + Number(process.env.ESPN_INTERVAL_MS ?? 400) - Date.now()
   if (wait > 0) await sleep(wait)
   lastCall = Date.now()
   return fetchJson(url)
@@ -111,42 +111,51 @@ export function toTable(entries, cfg, teams) {
   return ranked
 }
 
-// The feed is undocumented, so try the request shapes it is known to take,
-// from one call for the whole window down to one call a week, and remember
-// which one worked for the build report.
+// The feed answers a plain scoreboard (today's matches) and single dates, so
+// read the league's calendar of match days from the plain scoreboard and ask
+// for each match day in the window.
 async function scoreboard(code, from, to) {
   const url = `${SITE}/${code}/scoreboard`
-  const errors = []
-  for (const [via, q] of [['range+limit', `dates=${ymd(from)}-${ymd(to)}&limit=500`], ['range', `dates=${ymd(from)}-${ymd(to)}`]]) {
+  let today
+  try {
+    today = await get(url)
+  } catch (e) {
+    throw new Error(`${code}: ${String(e.message).split(' for ')[0]}${await codesLike(code)}`)
+  }
+  const cal = today.leagues?.[0]?.calendar ?? []
+  const days = [...new Set(cal.flatMap((d) => (typeof d === 'string' ? [d] : (d.entries ?? []).map((x) => x.startDate)))
+    .map((d) => Date.parse(d)).filter((t) => t >= from - 86400000 && t <= to).map(ymd))]
+  const events = new Map((today.events ?? []).map((e) => [e.id, e]))
+  let ok = 0
+  let failed = ''
+  for (const d of days) {
     try {
-      return { via, board: await get(`${url}?${q}`) }
+      for (const e of (await get(`${url}?dates=${d}`)).events ?? []) events.set(e.id, e)
+      ok++
     } catch (e) {
-      errors.push(`${via}: ${String(e.message).split(' for ')[0]}`)
+      failed ||= String(e.message).split(' for ')[0]
     }
   }
+  const via = `${ok}/${days.length} match days${failed ? `, ${failed}` : ''}`
+  return { via, dated: ok > 0, board: { ...today, events: [...events.values()] } }
+}
+
+// When ESPN does not know a code, list the codes it has for that country.
+async function codesLike(code) {
   try {
-    const events = new Map()
-    let board = {}
-    for (let t = from; t < to; t += 7 * 86400000) {
-      board = await get(`${url}?dates=${ymd(t)}-${ymd(Math.min(to, t + 6 * 86400000))}`)
-      for (const e of board.events ?? []) events.set(e.id, e)
-    }
-    return { via: 'weekly', board: { ...board, events: [...events.values()] } }
-  } catch (e) {
-    errors.push(`weekly: ${String(e.message).split(' for ')[0]}`)
+    const d = await get('https://sports.core.api.espn.com/v2/sports/soccer/leagues?limit=1000')
+    const prefix = code.split('.')[0]
+    const slugs = (d.items ?? []).map((i) => /leagues\/([^?/]+)/.exec(i.$ref ?? '')?.[1]).filter((x) => x?.startsWith(prefix))
+    return ` (ESPN has ${slugs.length ? slugs.join(', ') : `no ${prefix}.* league`} of ${d.items?.length ?? 0})`
+  } catch {
+    return ''
   }
-  try {
-    return { via: 'current', board: await get(url) }
-  } catch (e) {
-    errors.push(`current: ${String(e.message).split(' for ')[0]}`)
-  }
-  throw new Error(`${code} refused every request (${errors.join('; ')})`)
 }
 
 export async function competition(cfg, teams, now = Date.now()) {
-  const back = Number(process.env.ESPN_DAYS_BACK ?? 56)
-  const ahead = Number(process.env.ESPN_DAYS_AHEAD ?? 42)
-  const { via, board } = await scoreboard(cfg.espn, now - back * 86400000, now + ahead * 86400000)
+  const back = Number(process.env.ESPN_DAYS_BACK ?? 28)
+  const ahead = Number(process.env.ESPN_DAYS_AHEAD ?? 28)
+  const { via, dated, board } = await scoreboard(cfg.espn, now - back * 86400000, now + ahead * 86400000)
   const matches = (board.events ?? [])
     .map((e) => toMatch(e, cfg, teams))
     .filter((m) => m.homeId && m.awayId)
@@ -163,6 +172,8 @@ export async function competition(cfg, teams, now = Date.now()) {
     stages.push({ id: `${cfg.slug}-main`, name: groups.length > 1 ? 'Groups' : cfg.cup ? 'League phase' : 'League', format, groups: groups.length === 1 ? [{ ...groups[0], id: 'table', name: 'Table' }] : groups })
   }
   if (!matches.length && !stages.length) throw new Error(`no matches or table for ${cfg.espn}`)
+  // Today's scoreboard alone would make a running league look finished.
+  if (!dated) throw new Error(`${cfg.espn}: only today's matches (${via})`)
 
   const season = board.leagues?.[0]?.season
   const played = matches.filter((m) => m.score).map((m) => m.kickoff).sort()

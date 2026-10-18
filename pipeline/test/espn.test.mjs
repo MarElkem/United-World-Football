@@ -19,7 +19,7 @@ globalThis.fetch = async (url) => {
   const u = String(url)
   const body = u.includes('/scoreboard')
     ? {
-        leagues: [{ season: { year: 2027, displayName: '2026/2027' } }],
+        leagues: [{ season: { year: 2027, displayName: '2026/2027' }, calendar: ['2026-10-10T07:00Z', '2026-10-12T07:00Z'] }],
         events: [
           ev('1', '2026-10-10T17:00Z', FT, side('home', '10', 'Alpha SC', '2'), side('away', '11', 'Beta', '1')),
           ev('2', '2026-10-12T17:00Z', PEN, side('home', '11', 'Beta', '1', { shootoutScore: 4 }), side('away', '12', 'Gamma', '1', { shootoutScore: 3 })),
