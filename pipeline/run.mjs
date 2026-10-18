@@ -5,17 +5,19 @@
 // Sources, in order of preference for each competition:
 //   1. football-data.org (free key in FOOTBALL_DATA_TOKEN; fresher, more cups)
 //   2. openfootball (public domain, no key; can run a few weeks behind)
+//   3. TheSportsDB (free test key; community-kept) for everything else
 // A competition with no working source is left out, and the site shows it as
 // "not connected" instead of guessing.
 
 import { catalogEntries } from '../src/data/catalog.ts'
-import { cups, leagues, newsFeeds } from './config.mjs'
+import { cups, extras, leagues, newsFeeds } from './config.mjs'
 import { buildDigest } from './digest.mjs'
 import { Teams } from './lib/teams.mjs'
 import { writeJson } from './lib/util.mjs'
 import * as fd from './sources/footballdata.mjs'
 import { fetchNews } from './sources/news.mjs'
 import * as of from './sources/openfootball.mjs'
+import * as tsdb from './sources/thesportsdb.mjs'
 
 const OUT = new URL('../public/data/', import.meta.url).pathname
 const token = process.env.FOOTBALL_DATA_TOKEN?.trim()
@@ -36,11 +38,12 @@ async function attempt(source, slug, fn) {
   }
 }
 
-for (const cfg of [...leagues, ...cups]) {
+for (const cfg of [...leagues, ...cups, ...extras]) {
   let c = null
   if (token && cfg.footballData) c = await attempt(fd.SOURCE, cfg.slug, () => fd.competition(cfg, teams, token, now))
   if (!c && cfg.openfootball) c = await attempt(of.SOURCE, cfg.slug, () => of.league(cfg, teams, now))
   if (!c && cfg.openfootballWorldCup) c = await attempt(of.SOURCE, cfg.slug, () => of.worldCup(cfg, teams, now))
+  if (!c && cfg.tsdb) c = await attempt(tsdb.SOURCE, cfg.slug, () => tsdb.competition(cfg, teams, now))
   if (c) competitions.push(c)
 }
 if (!token) report.push({ source: fd.SOURCE, competition: '*', ok: false, detail: 'No FOOTBALL_DATA_TOKEN set, so this source was skipped.' })

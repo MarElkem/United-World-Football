@@ -79,6 +79,20 @@ export class Teams {
     })
   }
 
+  /** A team from TheSportsDB, keyed by its id. */
+  tsdb(id, rawName, country = '', national = false) {
+    if (!id) return ''
+    const key = `tsdb-${id}`
+    const name = national ? (rawName ?? '') : cleanClubName(rawName || `Team ${id}`)
+    return this.add(key, {
+      name,
+      shortName: shortNameFor(name),
+      kind: national ? 'national' : 'club',
+      country: national ? nationCode(name) : country,
+      colour: colourFor(key),
+    })
+  }
+
   /** Only the teams the given competitions refer to. */
   usedBy(competitions) {
     const used = new Set(competitions.flatMap((c) => c.matches.flatMap((m) => [m.homeId, m.awayId])))

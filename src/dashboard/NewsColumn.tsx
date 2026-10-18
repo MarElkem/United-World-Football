@@ -65,10 +65,10 @@ export function NewsColumn({ section, placeName, placeNews }: { section: Section
         <>
           <article className="lead-story">
             <p className="story-kicker">{typeLabels[lead.type]}</p>
-            <h3 className="lead-title">
+            <h3 className="lead-title" lang={lead.lang}>
               <a {...link(lead)}>{lead.title}</a>
             </h3>
-            <p className="lead-standfirst">{lead.summary}</p>
+            <p className="lead-standfirst" lang={lead.lang}>{lead.summary}</p>
             <Byline a={lead} />
           </article>
           {rest.length > 0 && (
@@ -76,7 +76,7 @@ export function NewsColumn({ section, placeName, placeNews }: { section: Section
               {rest.slice(0, 7).map((a) => (
                 <li key={a.id} className="story">
                   <p className="story-kicker">{typeLabels[a.type]}</p>
-                  <h3 className="story-title">
+                  <h3 className="story-title" lang={a.lang}>
                     <a {...link(a)}>{a.title}</a>
                   </h3>
                   <Byline a={a} />

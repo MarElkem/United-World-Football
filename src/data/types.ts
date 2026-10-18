@@ -147,6 +147,8 @@ export interface NewsArticle {
   sections: Section[]
   tags: { kind: 'team' | 'competition' | 'country' | 'confederation'; id: string; label: string }[]
   alsoReportedBy?: string[]
+  /** The headline's language, when the feed says (es, de, fr, pt...). */
+  lang?: string
   demo: boolean
 }
 

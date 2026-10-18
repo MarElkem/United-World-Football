@@ -81,8 +81,65 @@ export const cups = [
   },
 ]
 
+// Competitions only TheSportsDB covers for free. `tsdb` lists the names it
+// may use; the league id is looked up by name each run.
+const extra = (slug, name, shortName, section, confederation, country, tz, tsdb, more = {}) => ({
+  slug, name, shortName, section, confederation, country, tz, tsdb, ...more,
+})
+export const extras = [
+  extra('fa-cup', 'FA Cup', 'FA Cup', 'clubs', 'UEFA', 'gb-eng', 'Europe/London', ['English FA Cup', 'FA Cup'], { cup: true }),
+  extra('la-liga-2', 'LaLiga 2', 'LaLiga 2', 'clubs', 'UEFA', 'es', 'Europe/Madrid', ['Spanish La Liga 2', 'Spanish Segunda Division', 'LaLiga2', 'Segunda Division']),
+  extra('bundesliga-2', '2. Bundesliga', '2. Bundesliga', 'clubs', 'UEFA', 'de', 'Europe/Berlin', ['German 2. Bundesliga', '2. Bundesliga']),
+  extra('ligue-2', 'Ligue 2', 'Ligue 2', 'clubs', 'UEFA', 'fr', 'Europe/Paris', ['French Ligue 2', 'Ligue 2']),
+  extra('egypt-premier-league', 'Egyptian Premier League', 'Egyptian PL', 'clubs', 'CAF', 'eg', 'Africa/Cairo', ['Egyptian Premier League']),
+  extra('south-africa-premiership', 'Betway Premiership', 'Premiership', 'clubs', 'CAF', 'za', 'Africa/Johannesburg', ['South African Premier Soccer League', 'South African Premiership', 'Premier Soccer League']),
+  extra('botola-pro', 'Botola Pro', 'Botola Pro', 'clubs', 'CAF', 'ma', 'Africa/Casablanca', ['Moroccan Botola Pro', 'Moroccan Championship', 'Botola Pro']),
+  extra('npfl', 'Nigeria Premier Football League', 'NPFL', 'clubs', 'CAF', 'ng', 'Africa/Lagos', ['Nigerian Professional Football League', 'Nigerian Premier League', 'Nigeria Premier Football League']),
+  extra('j1-league', 'J1 League', 'J1 League', 'clubs', 'AFC', 'jp', 'Asia/Tokyo', ['Japanese J1 League', 'J1 League', 'Japanese J League']),
+  extra('saudi-pro-league', 'Saudi Pro League', 'Saudi Pro League', 'clubs', 'AFC', 'sa', 'Asia/Riyadh', ['Saudi Pro League', 'Saudi-Arabian Pro League', 'Saudi Professional League']),
+  extra('k-league-1', 'K League 1', 'K League 1', 'clubs', 'AFC', 'kr', 'Asia/Seoul', ['South Korean K League 1', 'K League 1', 'Korean K League 1']),
+  extra('mls', 'Major League Soccer', 'MLS', 'clubs', 'Concacaf', 'us', 'America/New_York', ['American Major League Soccer', 'Major League Soccer', 'MLS']),
+  extra('liga-mx', 'Liga MX', 'Liga MX', 'clubs', 'Concacaf', 'mx', 'America/Mexico_City', ['Mexican Primera League', 'Liga MX', 'Mexican Liga MX']),
+  extra('liga-profesional', 'Liga Profesional', 'Liga Profesional', 'clubs', 'CONMEBOL', 'ar', 'America/Argentina/Buenos_Aires', ['Argentinian Primera Division', 'Argentine Primera Division', 'Liga Profesional de Futbol']),
+  extra('a-league', 'A-League Men', 'A-League', 'clubs', 'OFC', 'au', 'Australia/Sydney', ['Australian A-League', 'A-League', 'A-League Men']),
+  extra('nz-national-league', 'National League', 'NZ National League', 'clubs', 'OFC', 'nz', 'Pacific/Auckland', ['New Zealand National League']),
+  extra('europa-league', 'UEFA Europa League', 'Europa League', 'intercontinental', 'UEFA', undefined, 'Europe/Paris', ['UEFA Europa League'], { cup: true }),
+  extra('conference-league', 'UEFA Conference League', 'Conference League', 'intercontinental', 'UEFA', undefined, 'Europe/Paris', ['UEFA Europa Conference League', 'UEFA Conference League'], { cup: true }),
+  extra('copa-sudamericana', 'CONMEBOL Sudamericana', 'Sudamericana', 'intercontinental', 'CONMEBOL', undefined, 'America/Sao_Paulo', ['CONMEBOL Copa Sudamericana', 'Copa Sudamericana'], { cup: true }),
+  extra('caf-champions-league', 'CAF Champions League', 'CAF Champions League', 'intercontinental', 'CAF', undefined, 'Africa/Cairo', ['CAF Champions League'], { cup: true }),
+  extra('caf-confederation-cup', 'CAF Confederation Cup', 'CAF Confed. Cup', 'intercontinental', 'CAF', undefined, 'Africa/Cairo', ['CAF Confederation Cup'], { cup: true }),
+  extra('afc-champions-league-elite', 'AFC Champions League Elite', 'ACL Elite', 'intercontinental', 'AFC', undefined, 'Asia/Riyadh', ['AFC Champions League Elite', 'AFC Champions League'], { cup: true }),
+  extra('concacaf-champions-cup', 'Concacaf Champions Cup', 'Champions Cup', 'intercontinental', 'Concacaf', undefined, 'America/New_York', ['CONCACAF Champions Cup', 'CONCACAF Champions League'], { cup: true }),
+  extra('nations-league', 'UEFA Nations League', 'Nations League', 'nations', 'UEFA', undefined, 'Europe/Paris', ['UEFA Nations League'], { cup: true, national: true }),
+  extra('friendlies', 'International friendlies', 'Friendlies', 'nations', 'FIFA', undefined, 'UTC', ['International Friendlies', 'Friendlies'], { cup: true, national: true }),
+]
+
+// Official RSS feeds, which publishers offer so readers and sites can show
+// their headlines with a link back. `tags` place a feed's stories on the globe
+// (country or confederation) when the headline alone does not say.
 export const newsFeeds = [
-  { name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/football/rss.xml' },
-  { name: 'The Guardian', url: 'https://www.theguardian.com/football/rss' },
-  { name: 'ESPN', url: 'https://www.espn.com/espn/rss/soccer/news' },
+  { name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/football/rss.xml', lang: 'en' },
+  { name: 'The Guardian', url: 'https://www.theguardian.com/football/rss', lang: 'en' },
+  { name: 'Sky Sports', url: 'https://www.skysports.com/rss/12040', lang: 'en' },
+  { name: 'ESPN', url: 'https://www.espn.com/espn/rss/soccer/news', lang: 'en' },
+  {
+    name: 'BBC Sport Africa', url: 'https://feeds.bbci.co.uk/sport/football/african/rss.xml', lang: 'en',
+    tags: [{ kind: 'confederation', id: 'caf', label: 'Africa' }],
+  },
+  {
+    name: 'Marca', url: 'https://e00-marca.uecdn.es/rss/futbol/primera-division.xml', lang: 'es',
+    tags: [{ kind: 'country', id: 'es', label: 'Spain' }],
+  },
+  {
+    name: 'Kicker', url: 'https://newsfeed.kicker.de/news/fussball', lang: 'de',
+    tags: [{ kind: 'country', id: 'de', label: 'Germany' }],
+  },
+  {
+    name: "L'Équipe", url: 'https://dwh.lequipe.fr/api/edimobile/rss/football.xml', lang: 'fr',
+    tags: [{ kind: 'country', id: 'fr', label: 'France' }],
+  },
+  {
+    name: 'ge (Globo)', url: 'https://ge.globo.com/rss/ge/futebol/', lang: 'pt',
+    tags: [{ kind: 'country', id: 'br', label: 'Brazil' }],
+  },
 ]

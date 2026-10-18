@@ -14,7 +14,8 @@ files and redeploys. There is no server to pay for and no key in the browser.
 | --- | --- | --- | --- |
 | [openfootball](https://github.com/openfootball) (public domain) | Premier League, Championship, LaLiga, Bundesliga, Serie A, Ligue 1, Eredivisie, Primeira Liga, Brasileirão, World Cup 2026 | none | Verified. Volunteer-kept, so results can be a few weeks behind; each competition shows its last result date. |
 | [football-data.org](https://www.football-data.org) free plan | The same leagues, fresher, plus Champions League and Libertadores | free, `FOOTBALL_DATA_TOKEN` secret | Used when the secret is set. Each run's report (`data/status.json`) says if it worked. |
-| BBC Sport, The Guardian, ESPN RSS | Headlines with links back to the publisher | none | Fetched each run; a feed that fails is skipped and reported. |
+| [TheSportsDB](https://www.thesportsdb.com) free API | Leagues and cups nobody else covers for free: MLS, Liga MX, Saudi Pro League, J1, K League, A-League, Argentina, Egypt, South Africa, Morocco, Nigeria, second divisions, FA Cup, Europa and Conference League, Sudamericana, CAF and AFC club cups, Nations League, friendlies | public test key (or `THESPORTSDB_KEY` secret) | Community-kept; a table is only shown when it looks complete, otherwise fixtures and results only. |
+| Official RSS feeds: BBC Sport (and its Africa page), The Guardian, Sky Sports, ESPN, Marca, Kicker, L'Équipe, ge (Globo) | Headlines with links back to the publisher, in their own language | none | Fetched each run; a feed that fails is skipped and reported. |
 
 Rules the pipeline follows: never invent scores, fixtures, tables or news; a competition
 with no working source shows "no data source connected yet"; every competition carries
