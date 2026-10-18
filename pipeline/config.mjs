@@ -136,7 +136,7 @@ export const newsFeeds = [
     tags: [{ kind: 'country', id: 'de', label: 'Germany' }],
   },
   {
-    name: "L'Équipe", url: 'https://www.lequipe.fr/rss/actu_rss_Football.xml', lang: 'fr',
+    name: 'RMC Sport', url: 'https://rmcsport.bfmtv.com/rss/football/', lang: 'fr',
     tags: [{ kind: 'country', id: 'fr', label: 'France' }],
   },
   {

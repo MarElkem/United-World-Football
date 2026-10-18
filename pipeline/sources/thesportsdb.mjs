@@ -17,7 +17,7 @@ export const isLimited = () => limited
 
 async function get(path) {
   if (limited) throw new Error('rate limited earlier in this run')
-  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? 3000) - Date.now()
+  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? 6500) - Date.now()
   if (wait > 0) await sleep(wait)
   lastCall = Date.now()
   try {

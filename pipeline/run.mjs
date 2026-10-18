@@ -59,7 +59,7 @@ const CACHE = new URL('../.cache/tsdb/', import.meta.url).pathname
 const readCache = (slug) => readFile(`${CACHE}${slug}.json`, 'utf8').then(JSON.parse).catch(() => null)
 const queue = await Promise.all(tsdbQueue.map(async (cfg) => ({ cfg, hit: await readCache(cfg.slug) })))
 queue.sort((a, b) => (a.hit?.fetchedAt ?? '').localeCompare(b.hit?.fetchedAt ?? ''))
-let budget = Number(process.env.TSDB_BUDGET ?? 8)
+let budget = Number(process.env.TSDB_BUDGET ?? 6)
 for (const { cfg, hit } of queue) {
   let c = null
   if (budget > 0 && !tsdb.isLimited()) {
@@ -71,6 +71,9 @@ for (const { cfg, hit } of queue) {
     for (const [id, t] of Object.entries(hit.teams)) teams.add(id, t)
     c = hit.competition
     report.push({ source: `${tsdb.SOURCE} (saved copy)`, competition: cfg.slug, ok: true, detail: `fetched ${hit.fetchedAt.slice(0, 16)}` })
+  }
+  if (!c && !hit && (budget <= 0 || tsdb.isLimited()) && !report.some((r) => r.competition === cfg.slug)) {
+    report.push({ source: tsdb.SOURCE, competition: cfg.slug, ok: false, detail: 'queued for a later run (free key rate limit)' })
   }
   if (c) competitions.push(c)
 }
