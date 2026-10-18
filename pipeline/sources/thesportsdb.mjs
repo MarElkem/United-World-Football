@@ -22,17 +22,42 @@ async function get(path) {
 const norm = (s = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 let leaguesPromise
-/** Every soccer league TheSportsDB knows, fetched once per run. */
+/** Every soccer league in TheSportsDB's full list, fetched once per run. */
 function allLeagues() {
-  leaguesPromise ??= get('all_leagues.php').then((d) => (d.leagues ?? []).filter((l) => l.strSport === 'Soccer'))
+  leaguesPromise ??= get('all_leagues.php')
+    .then((d) => (d.leagues ?? []).filter((l) => l.strSport === 'Soccer'))
+    .catch(() => [])
   return leaguesPromise
 }
 
-export async function findLeague(names) {
-  const leagues = await allLeagues()
-  const wanted = names.map(norm)
-  const labels = (l) => [l.strLeague, ...(l.strLeagueAlternate ?? '').split(',')].map(norm).filter(Boolean)
-  return leagues.find((l) => labels(l).some((x) => wanted.includes(x))) ?? null
+const labels = (l) => [l.strLeague, ...(l.strLeagueAlternate ?? '').split(',')].map(norm).filter(Boolean)
+const named = (l, wanted) => l && (!l.strSport || l.strSport === 'Soccer') && labels(l).some((x) => wanted.includes(x))
+
+/**
+ * Finds the league: our id guess if its name checks out, then a search of the
+ * country's leagues, then the full list. The error says what was seen, so a
+ * name that needs adding shows up in the build report.
+ */
+export async function findLeague(cfg) {
+  const wanted = cfg.tsdb.map(norm)
+  const seen = []
+  if (cfg.tsdbId) {
+    const l = (await get(`lookupleague.php?id=${cfg.tsdbId}`).catch(() => ({}))).leagues?.[0]
+    if (named(l, wanted)) return l
+    if (l?.strLeague) seen.push(`id ${cfg.tsdbId} is "${l.strLeague}"`)
+  }
+  if (cfg.tsdbCountry) {
+    const d = await get(`search_all_leagues.php?c=${encodeURIComponent(cfg.tsdbCountry)}&s=Soccer`).catch(() => ({}))
+    const list = d.countries ?? d.countrys ?? d.leagues ?? []
+    const hit = list.find((l) => named(l, wanted))
+    if (hit) return hit
+    if (list.length) seen.push(`${cfg.tsdbCountry} has ${list.slice(0, 6).map((l) => `"${l.strLeague}"`).join(', ')}`)
+  }
+  const all = await allLeagues()
+  const hit = all.find((l) => named(l, wanted))
+  if (hit) return hit
+  seen.push(`full list has ${all.length} soccer leagues`)
+  throw new Error(`no league named ${cfg.tsdb.join(' / ')} (${seen.join('; ')})`)
 }
 
 const FINISHED = /^(match finished|ft|aet|pen|ap|awarded|aw)$/i
@@ -96,10 +121,9 @@ function toRow(r, cfg, teams) {
 }
 
 export async function competition(cfg, teams, now = Date.now()) {
-  const league = await findLeague(cfg.tsdb)
-  if (!league) throw new Error(`no league named ${cfg.tsdb.join(' / ')}`)
+  const league = await findLeague(cfg)
   const id = league.idLeague
-  const info = (await get(`lookupleague.php?id=${id}`)).leagues?.[0] ?? {}
+  const info = league.strCurrentSeason ? league : ((await get(`lookupleague.php?id=${id}`)).leagues?.[0] ?? {})
   const season = info.strCurrentSeason || ''
 
   // One at a time, to stay inside the rate limit.
