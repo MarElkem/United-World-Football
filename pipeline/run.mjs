@@ -18,6 +18,7 @@ import { writeJson } from './lib/util.mjs'
 import * as fd from './sources/footballdata.mjs'
 import { fetchNews } from './sources/news.mjs'
 import * as of from './sources/openfootball.mjs'
+import * as espn from './sources/espn.mjs'
 import * as tsdb from './sources/thesportsdb.mjs'
 
 const OUT = new URL('../public/data/', import.meta.url).pathname
@@ -56,6 +57,7 @@ for (const cfg of [...leagues, ...cups, ...extras]) {
   let c = null
   if (token && cfg.footballData) c = await attempt(fd.SOURCE, cfg.slug, () => fd.competition(cfg, teams, token, now))
   if (!c && cfg.openfootball) c = await attempt(of.SOURCE, cfg.slug, () => of.league(cfg, teams, now))
+  if (!c && cfg.espn) c = await attempt(espn.SOURCE, cfg.slug, () => espn.competition(cfg, teams, now))
   if (!c && cfg.tsdb) {
     tsdbQueue.push(cfg)
     continue

@@ -93,6 +93,21 @@ export class Teams {
     })
   }
 
+  /** A team from ESPN's feed, keyed by its id. */
+  espn(id, rawName, shortName, country = '', national = false) {
+    if (!id) return ''
+    const key = `espn-${id}`
+    const name = national ? (rawName ?? '') : cleanClubName(rawName || `Team ${id}`)
+    const short = shortName && shortName.length <= 15 ? cleanClubName(shortName) : shortNameFor(name)
+    return this.add(key, {
+      name,
+      shortName: short,
+      kind: national ? 'national' : 'club',
+      country: national ? nationCode(name) : country,
+      colour: colourFor(key),
+    })
+  }
+
   /** Only the teams the given competitions refer to. */
   usedBy(competitions) {
     const used = new Set(competitions.flatMap((c) => c.matches.flatMap((m) => [m.homeId, m.awayId])))
