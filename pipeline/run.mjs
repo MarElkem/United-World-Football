@@ -70,7 +70,7 @@ const CACHE = new URL('../.cache/tsdb/', import.meta.url).pathname
 const readCache = (slug) => readFile(`${CACHE}${slug}.json`, 'utf8').then(JSON.parse).catch(() => null)
 const queue = await Promise.all(tsdbQueue.map(async (cfg) => ({ cfg, hit: await readCache(cfg.slug) })))
 queue.sort((a, b) => (a.hit?.fetchedAt ?? '').localeCompare(b.hit?.fetchedAt ?? ''))
-let budget = Number(process.env.TSDB_BUDGET ?? 6)
+let budget = Number(process.env.TSDB_BUDGET ?? (tsdb.isPremium ? 99 : 6))
 for (const { cfg, hit } of queue) {
   let c = null
   if (budget > 0 && !tsdb.isLimited()) {

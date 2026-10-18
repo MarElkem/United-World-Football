@@ -9,6 +9,8 @@ import { fetchJson, sleep } from '../lib/util.mjs'
 const KEY = process.env.THESPORTSDB_KEY?.trim() || '123'
 const API = `https://www.thesportsdb.com/api/v1/json/${KEY}`
 export const SOURCE = 'TheSportsDB'
+/** A supporter key (about $9 a month) lifts the free key's limits. */
+export const isPremium = KEY !== '123'
 
 let lastCall = 0
 let limited = false
@@ -17,7 +19,7 @@ export const isLimited = () => limited
 
 async function get(path) {
   if (limited) throw new Error('rate limited earlier in this run')
-  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? 6500) - Date.now()
+  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? (isPremium ? 800 : 6500)) - Date.now()
   if (wait > 0) await sleep(wait)
   lastCall = Date.now()
   try {
@@ -143,6 +145,13 @@ export async function competition(cfg, teams, now = Date.now()) {
   ]
   const lists = []
   for (const path of paths) lists.push(await get(path).catch(() => ({})))
+  // The free key's season list stops after the first few rounds, so also ask
+  // for the whole latest round and the one after it.
+  const past = lists.flatMap((l) => l.events ?? []).filter((e) => e && status(e) !== 'scheduled')
+  const latest = Math.max(0, ...past.map((e) => Number(e.intRound) || 0))
+  if (season && !cfg.cup && latest > 0) {
+    for (const r of [latest, latest + 1]) lists.push(await get(`eventsround.php?id=${id}&r=${r}&s=${encodeURIComponent(season)}`).catch(() => ({})))
+  }
   const byId = new Map()
   for (const e of lists.flatMap((l) => l.events ?? [])) if (e?.idEvent) byId.set(e.idEvent, e)
   const matches = [...byId.values()].map((e) => toMatch(e, cfg, teams)).sort((x, y) => x.kickoff.localeCompare(y.kickoff))
@@ -176,7 +185,7 @@ export async function competition(cfg, teams, now = Date.now()) {
       source: 'TheSportsDB (free)',
       fetchedAt: new Date(now).toISOString(),
       freshness: 'delayed',
-      note: `Community-kept, so it can be incomplete.${last ? ` Latest result we have: ${last}.` : ''}`,
+      note: `${isPremium ? '' : 'Free key: recent rounds only. '}Community-kept, so it can be incomplete.${last ? ` Latest result we have: ${last}.` : ''}`,
     },
     matches,
     stages,
