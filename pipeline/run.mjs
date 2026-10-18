@@ -45,7 +45,8 @@ async function attempt(source, slug, fn) {
   try {
     const c = await fn()
     const played = c.matches.filter((m) => m.score).length
-    report.push({ source, competition: slug, ok: true, detail: `${c.matches.length} matches, ${played} with scores` })
+    report.push({ source, competition: slug, ok: true, detail: `${c.matches.length} matches, ${played} with scores${c.via ? ` (${c.via})` : ''}` })
+    delete c.via
     return c
   } catch (e) {
     report.push({ source, competition: slug, ok: false, detail: String(e.message ?? e).slice(0, 200) })

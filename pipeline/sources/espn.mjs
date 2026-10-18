@@ -111,10 +111,42 @@ export function toTable(entries, cfg, teams) {
   return ranked
 }
 
+// The feed is undocumented, so try the request shapes it is known to take,
+// from one call for the whole window down to one call a week, and remember
+// which one worked for the build report.
+async function scoreboard(code, from, to) {
+  const url = `${SITE}/${code}/scoreboard`
+  const errors = []
+  for (const [via, q] of [['range+limit', `dates=${ymd(from)}-${ymd(to)}&limit=500`], ['range', `dates=${ymd(from)}-${ymd(to)}`]]) {
+    try {
+      return { via, board: await get(`${url}?${q}`) }
+    } catch (e) {
+      errors.push(`${via}: ${String(e.message).split(' for ')[0]}`)
+    }
+  }
+  try {
+    const events = new Map()
+    let board = {}
+    for (let t = from; t < to; t += 7 * 86400000) {
+      board = await get(`${url}?dates=${ymd(t)}-${ymd(Math.min(to, t + 6 * 86400000))}`)
+      for (const e of board.events ?? []) events.set(e.id, e)
+    }
+    return { via: 'weekly', board: { ...board, events: [...events.values()] } }
+  } catch (e) {
+    errors.push(`weekly: ${String(e.message).split(' for ')[0]}`)
+  }
+  try {
+    return { via: 'current', board: await get(url) }
+  } catch (e) {
+    errors.push(`current: ${String(e.message).split(' for ')[0]}`)
+  }
+  throw new Error(`${code} refused every request (${errors.join('; ')})`)
+}
+
 export async function competition(cfg, teams, now = Date.now()) {
   const back = Number(process.env.ESPN_DAYS_BACK ?? 56)
   const ahead = Number(process.env.ESPN_DAYS_AHEAD ?? 42)
-  const board = await get(`${SITE}/${cfg.espn}/scoreboard?dates=${ymd(now - back * 86400000)}-${ymd(now + ahead * 86400000)}&limit=1000`)
+  const { via, board } = await scoreboard(cfg.espn, now - back * 86400000, now + ahead * 86400000)
   const matches = (board.events ?? [])
     .map((e) => toMatch(e, cfg, teams))
     .filter((m) => m.homeId && m.awayId)
@@ -153,5 +185,6 @@ export async function competition(cfg, teams, now = Date.now()) {
     },
     matches,
     stages,
+    via: `${via}${stages.length ? ', table' : ''}`,
   }
 }
