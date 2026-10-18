@@ -123,8 +123,14 @@ async function scoreboard(code, from, to) {
     throw new Error(`${code}: ${String(e.message).split(' for ')[0]}${await codesLike(code)}`)
   }
   const cal = today.leagues?.[0]?.calendar ?? []
-  const days = [...new Set(cal.flatMap((d) => (typeof d === 'string' ? [d] : (d.entries ?? []).map((x) => x.startDate)))
-    .map((d) => Date.parse(d)).filter((t) => t >= from - 86400000 && t <= to).map(ymd))]
+  // Leagues list match days; cups list stages, each a span of days.
+  const spans = cal.flatMap((d) => (typeof d === 'string' ? [[d, d]] : (d.entries ?? [d]).map((x) => [x.startDate, x.endDate ?? x.startDate])))
+  const days = new Set()
+  for (const [a, z] of spans) {
+    const start = Math.max(Date.parse(a), from - 86400000)
+    const end = Math.min(Date.parse(z), to)
+    for (let t = start; t <= end && days.size < 60; t += 86400000) days.add(ymd(t))
+  }
   const events = new Map((today.events ?? []).map((e) => [e.id, e]))
   let ok = 0
   let failed = ''
@@ -136,7 +142,7 @@ async function scoreboard(code, from, to) {
       failed ||= String(e.message).split(' for ')[0]
     }
   }
-  const via = `${ok}/${days.length} match days${failed ? `, ${failed}` : ''}`
+  const via = `${ok}/${days.size} match days${failed ? `, ${failed}` : ''}`
   return { via, dated: ok > 0, board: { ...today, events: [...events.values()] } }
 }
 
@@ -145,8 +151,9 @@ async function codesLike(code) {
   try {
     const d = await get('https://sports.core.api.espn.com/v2/sports/soccer/leagues?limit=1000')
     const prefix = code.split('.')[0]
-    const slugs = (d.items ?? []).map((i) => /leagues\/([^?/]+)/.exec(i.$ref ?? '')?.[1]).filter((x) => x?.startsWith(prefix))
-    return ` (ESPN has ${slugs.length ? slugs.join(', ') : `no ${prefix}.* league`} of ${d.items?.length ?? 0})`
+    const all = (d.items ?? []).map((i) => /leagues\/([^?/]+)/.exec(i.$ref ?? '')?.[1]).filter(Boolean)
+    const slugs = all.filter((x) => x.startsWith(prefix))
+    return ` (ESPN has ${slugs.length ? slugs.join(', ') : `no ${prefix}.* league; all codes: ${all.filter((x) => !/^(uefa|fifa|club|global)\./.test(x)).join(' ')}`})`
   } catch {
     return ''
   }

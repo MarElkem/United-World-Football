@@ -49,7 +49,7 @@ async function attempt(source, slug, fn) {
     delete c.via
     return c
   } catch (e) {
-    report.push({ source, competition: slug, ok: false, detail: String(e.message ?? e).slice(0, 200) })
+    report.push({ source, competition: slug, ok: false, detail: String(e.message ?? e).slice(0, 2500) })
     return null
   }
 }
