@@ -153,7 +153,7 @@ async function codesLike(code) {
     const prefix = code.split('.')[0]
     const all = (d.items ?? []).map((i) => /leagues\/([^?/]+)/.exec(i.$ref ?? '')?.[1]).filter(Boolean)
     const slugs = all.filter((x) => x.startsWith(prefix))
-    return ` (ESPN has ${slugs.length ? slugs.join(', ') : `no ${prefix}.* league; all codes: ${all.filter((x) => !/^(uefa|fifa|club|global)\./.test(x)).join(' ')}`})`
+    return ` (ESPN has ${slugs.length ? slugs.join(', ') : `no ${prefix}.* league among its ${all.length}`})`
   } catch {
     return ''
   }

@@ -109,11 +109,12 @@ export const extras = [
 ]
 
 // ESPN league codes for the extras (pipeline/sources/espn.mjs). ESPN is tried
-// first; TheSportsDB fills in when ESPN has nothing.
+// first; TheSportsDB fills in when ESPN has nothing. ESPN has no Egyptian,
+// Moroccan or Korean league (checked against its league list, 2026-10-18).
 const ESPN = {
   'fa-cup': 'eng.fa', 'la-liga-2': 'esp.2', 'bundesliga-2': 'ger.2', 'ligue-2': 'fra.2',
-  'egypt-premier-league': 'egy.1', 'south-africa-premiership': 'rsa.1', 'botola-pro': 'mar.1', npfl: 'nga.1',
-  'j1-league': 'jpn.1', 'saudi-pro-league': 'ksa.1', 'k-league-1': 'kor.1', mls: 'usa.1', 'liga-mx': 'mex.1',
+  'south-africa-premiership': 'rsa.1', npfl: 'nga.1',
+  'j1-league': 'jpn.1', 'saudi-pro-league': 'ksa.1', mls: 'usa.1', 'liga-mx': 'mex.1',
   'liga-profesional': 'arg.1', 'a-league': 'aus.1', 'europa-league': 'uefa.europa', 'conference-league': 'uefa.europa.conf',
   'copa-sudamericana': 'conmebol.sudamericana', 'caf-champions-league': 'caf.champions', 'caf-confederation-cup': 'caf.confed',
   'afc-champions-league-elite': 'afc.champions', 'nations-league': 'uefa.nations', friendlies: 'fifa.friendly',
