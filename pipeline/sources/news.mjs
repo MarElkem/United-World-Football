@@ -56,7 +56,6 @@ const COMPETITION_WORDS = [
   ['copa-libertadores', ['Libertadores']],
   ['mls', ['MLS']],
   ['saudi-pro-league', ['Saudi Pro League']],
-  ['world-cup-2026', ['World Cup']],
 ]
 
 /**

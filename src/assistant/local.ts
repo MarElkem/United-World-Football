@@ -20,7 +20,6 @@ const ALIASES: Record<string, string[]> = {
   eredivisie: ['eredivisie', 'dutch league'],
   'primeira-liga': ['primeira liga', 'liga portugal', 'portuguese league'],
   'brasileirao-serie-a': ['brasileirao', 'brazilian league', 'serie a brazil'],
-  'world-cup-2026': ['world cup'],
   'champions-league': ['champions league', 'ucl'],
   'copa-libertadores': ['libertadores'],
 }

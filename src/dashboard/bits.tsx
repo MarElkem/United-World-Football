@@ -39,15 +39,17 @@ export function TeamName({ id, short = false }: { id: string; short?: boolean })
 }
 
 
-const freshnessLabel = { demo: 'Demo data', live: 'Live', delayed: 'Slightly delayed', stale: 'Behind', unavailable: 'Unavailable' }
+const freshnessLabel = { demo: 'Demo data', live: 'Live', delayed: '', stale: 'Behind', unavailable: 'Unavailable' }
 
 /** Where a competition's data comes from and how fresh it is. */
 export function SourceStamp({ stamp }: { stamp: DataStamp }) {
   return (
     <>
-      <span className={`stamp stamp-${stamp.freshness}`} title={stamp.note}>
-        {freshnessLabel[stamp.freshness]}
-      </span>
+      {freshnessLabel[stamp.freshness] && (
+        <span className={`stamp stamp-${stamp.freshness}`} title={stamp.note}>
+          {freshnessLabel[stamp.freshness]}
+        </span>
+      )}
       <span className="stamp-source">
         {stamp.source}
         {stamp.note ? `. ${stamp.note}` : ''}

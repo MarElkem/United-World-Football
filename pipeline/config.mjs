@@ -57,15 +57,8 @@ export const leagues = [
   },
 ].map((l) => ({ ...l, section: 'clubs', zoneLabels }))
 
-/**
- * Cup competitions. football-data.org's free plan covers these; openfootball
- * has the 2026 World Cup.
- */
+/** Cup competitions football-data.org's free plan covers. */
 export const cups = [
-  {
-    slug: 'world-cup-2026', name: 'FIFA World Cup 2026', shortName: 'World Cup 2026', section: 'nations', confederation: 'FIFA',
-    tz: 'America/New_York', openfootballWorldCup: '2026', national: true,
-  },
   {
     slug: 'champions-league', name: 'UEFA Champions League', shortName: 'Champions League', section: 'intercontinental', confederation: 'UEFA',
     tz: 'Europe/Paris', footballData: 'CL',
@@ -111,7 +104,6 @@ export const extras = [
   extra('caf-champions-league', 'CAF Champions League', 'CAF Champions League', 'intercontinental', 'CAF', undefined, 'Africa/Cairo', ['CAF Champions League'], { cup: true, tsdbId: '4720' }),
   extra('caf-confederation-cup', 'CAF Confederation Cup', 'CAF Confed. Cup', 'intercontinental', 'CAF', undefined, 'Africa/Cairo', ['CAF Confederation Cup'], { cup: true }),
   extra('afc-champions-league-elite', 'AFC Champions League Elite', 'ACL Elite', 'intercontinental', 'AFC', undefined, 'Asia/Riyadh', ['AFC Champions League Elite', 'AFC Champions League'], { cup: true, tsdbId: '4517' }),
-  extra('concacaf-champions-cup', 'Concacaf Champions Cup', 'Champions Cup', 'intercontinental', 'Concacaf', undefined, 'America/New_York', ['CONCACAF Champions Cup', 'CONCACAF Champions League'], { cup: true, tsdbId: '4721' }),
   extra('nations-league', 'UEFA Nations League', 'Nations League', 'nations', 'UEFA', undefined, 'Europe/Paris', ['UEFA Nations League'], { cup: true, national: true, tsdbId: '4490' }),
   extra('friendlies', 'International friendlies', 'Friendlies', 'nations', 'FIFA', undefined, 'UTC', ['International Friendlies', 'Friendlies'], { cup: true, national: true, tsdbId: '4562' }),
 ]

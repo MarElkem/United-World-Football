@@ -1,6 +1,7 @@
-// The sidebar catalogue. Competitions the data pipeline fills show real data;
-// the rest are listed so the navigation is realistic, and open an honest
-// "no source connected yet" state.
+// The sidebar catalogue: competitions being played now. The ones the data
+// pipeline fills show real data; the rest open an honest "no source connected
+// yet" state. Finished and not-yet-started tournaments are left out, and the
+// pipeline also hides any whose data shows it has ended (see source.ts).
 
 import type { CompetitionStatus, NavNode, Section } from './types'
 
@@ -22,8 +23,6 @@ const nations: NavNode[] = [
   {
     id: 'n-fifa', label: 'World', note: 'FIFA',
     children: c('n', [
-      ['FIFA World Cup 2026', 'world-cup-2026', 'completed'],
-      ['FIFA World Cup 2030', 'world-cup-2030', 'upcoming'],
       ['International friendlies', 'friendlies', 'active'],
     ]),
   },
@@ -31,46 +30,18 @@ const nations: NavNode[] = [
     id: 'n-caf', label: 'Africa', note: 'CAF',
     children: c('n', [
       ['AFCON Qualifiers', 'afcon-qualifiers', 'qualifying'],
-      ['Africa Cup of Nations', 'afcon', 'upcoming'],
-      ['African Nations Championship (CHAN)', 'chan', 'upcoming'],
-      ['World Cup Qualifiers – Africa', 'wcq-caf', 'upcoming'],
-    ]),
-  },
-  {
-    id: 'n-afc', label: 'Asia', note: 'AFC',
-    children: c('n', [
-      ['AFC Asian Cup', 'asian-cup', 'upcoming'],
-      ['World Cup Qualifiers – Asia', 'wcq-afc', 'upcoming'],
-      ['AFF Championship', 'aff-championship', 'upcoming'],
     ]),
   },
   {
     id: 'n-uefa', label: 'Europe', note: 'UEFA',
     children: c('n', [
-      ['UEFA European Championship 2028', 'euro-2028', 'upcoming'],
       ['UEFA Nations League', 'nations-league', 'active'],
-      ['European Qualifiers', 'euro-qualifiers', 'upcoming'],
     ]),
   },
   {
     id: 'n-concacaf', label: 'North & Central America, Caribbean', note: 'Concacaf',
     children: c('n', [
-      ['Concacaf Gold Cup', 'gold-cup', 'upcoming'],
       ['Concacaf Nations League', 'concacaf-nations-league', 'active'],
-    ]),
-  },
-  {
-    id: 'n-conmebol', label: 'South America', note: 'CONMEBOL',
-    children: c('n', [
-      ['World Cup Qualifiers – South America', 'south-american-qualifiers', 'qualifying'],
-      ['Copa América', 'copa-america', 'upcoming'],
-    ]),
-  },
-  {
-    id: 'n-ofc', label: 'Oceania', note: 'OFC',
-    children: c('n', [
-      ['OFC Nations Cup', 'ofc-nations-cup', 'upcoming'],
-      ['World Cup Qualifiers – Oceania', 'wcq-ofc', 'upcoming'],
     ]),
   },
 ]
@@ -163,21 +134,6 @@ const intercontinental: NavNode[] = [
     children: c('i', [
       ['AFC Champions League Elite', 'afc-champions-league-elite', 'active'],
       ['AFC Champions League Two', 'afc-champions-league-two', 'active'],
-    ]),
-  },
-  {
-    id: 'i-concacaf', label: 'North & Central America', note: 'Concacaf',
-    children: c('i', [['Concacaf Champions Cup', 'concacaf-champions-cup', 'upcoming']]),
-  },
-  {
-    id: 'i-ofc', label: 'Oceania', note: 'OFC',
-    children: c('i', [['OFC Champions League', 'ofc-champions-league', 'upcoming']]),
-  },
-  {
-    id: 'i-fifa', label: 'World', note: 'FIFA',
-    children: c('i', [
-      ['FIFA Club World Cup', 'club-world-cup', 'upcoming'],
-      ['FIFA Intercontinental Cup', 'intercontinental-cup', 'upcoming'],
     ]),
   },
 ]

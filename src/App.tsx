@@ -142,7 +142,7 @@ export default function App() {
   ].join('; ')
   const chatSuggestions = [
     ...(entry && withData.has(entry.slug) ? [`Who is top of the ${entry.label}?`] : []),
-    'Who won the World Cup 2026?',
+    'Who is top of the Bundesliga?',
     'Who is going down in LaLiga?',
     'Latest football news',
   ].slice(0, 4)

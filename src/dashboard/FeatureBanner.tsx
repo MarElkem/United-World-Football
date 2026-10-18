@@ -4,7 +4,7 @@ import type { Competition, Section } from '../data/types'
 import { kickoffLocal } from './time'
 
 const flagship: Record<Section, string[]> = {
-  nations: ['world-cup-2026'],
+  nations: ['nations-league', 'friendlies'],
   clubs: ['premier-league', 'la-liga'],
   intercontinental: ['champions-league', 'copa-libertadores'],
 }

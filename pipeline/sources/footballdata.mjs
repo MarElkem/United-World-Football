@@ -139,7 +139,6 @@ export async function competition(cfg, teams, token, now = Date.now()) {
       source: 'football-data.org',
       fetchedAt: new Date(now).toISOString(),
       freshness: 'delayed',
-      note: 'Free plan: scores can be a few minutes behind.',
     },
     matches,
     stages,

@@ -16,6 +16,8 @@ export interface SiteData {
   generatedAt: string
   teams: Record<string, Team>
   competitions: Competition[]
+  /** Catalogue slugs whose data shows the tournament has ended or not begun. */
+  ended?: string[]
   news: NewsArticle[]
   sources: SourceReport[]
 }
@@ -51,7 +53,7 @@ export interface FootballSource {
 export const source: FootballSource = {
   competitions: () => data?.competitions ?? [],
   competition: (slug) => data?.competitions.find((c) => c.slug === slug),
-  catalog: catalogEntries,
+  catalog: () => catalogEntries().filter((e) => !data?.ended?.includes(e.slug)),
   news: () => data?.news ?? [],
   team: (id) => (id && data?.teams[id]) || { ...UNKNOWN, id: id ?? '' },
   generatedAt: () => data?.generatedAt ?? null,

@@ -27,6 +27,18 @@ const teams = new Teams()
 const report = []
 const competitions = []
 const tsdbQueue = []
+const ended = []
+
+// Only tournaments being played now: one that has finished, or whose first
+// match is more than two weeks off, is left out (and hidden from the sidebar).
+function keep(c) {
+  const first = c.matches.map((m) => m.kickoff).sort()[0]
+  const farOff = c.status === 'upcoming' && (!first || new Date(first).getTime() - now > 14 * 86400000)
+  if (c.status === 'completed' || farOff) {
+    ended.push(c.slug)
+    report.push({ source: c.stamp.source, competition: c.slug, ok: true, detail: `left out: ${c.status === 'completed' ? 'finished' : 'not started yet'}` })
+  } else competitions.push(c)
+}
 
 async function attempt(source, slug, fn) {
   try {
@@ -44,12 +56,11 @@ for (const cfg of [...leagues, ...cups, ...extras]) {
   let c = null
   if (token && cfg.footballData) c = await attempt(fd.SOURCE, cfg.slug, () => fd.competition(cfg, teams, token, now))
   if (!c && cfg.openfootball) c = await attempt(of.SOURCE, cfg.slug, () => of.league(cfg, teams, now))
-  if (!c && cfg.openfootballWorldCup) c = await attempt(of.SOURCE, cfg.slug, () => of.worldCup(cfg, teams, now))
   if (!c && cfg.tsdb) {
     tsdbQueue.push(cfg)
     continue
   }
-  if (c) competitions.push(c)
+  if (c) keep(c)
 }
 
 // TheSportsDB's free key is rate-limited, so each run refreshes only the
@@ -75,12 +86,12 @@ for (const { cfg, hit } of queue) {
   if (!c && !hit && (budget <= 0 || tsdb.isLimited()) && !report.some((r) => r.competition === cfg.slug)) {
     report.push({ source: tsdb.SOURCE, competition: cfg.slug, ok: false, detail: 'queued for a later run (free key rate limit)' })
   }
-  if (c) competitions.push(c)
+  if (c) keep(c)
 }
 if (!token) report.push({ source: fd.SOURCE, competition: '*', ok: false, detail: 'No FOOTBALL_DATA_TOKEN set, so this source was skipped.' })
 
 const usedTeams = teams.usedBy(competitions)
-const catalogue = catalogEntries().map(({ slug, label, section }) => ({ slug, label, section }))
+const catalogue = catalogEntries().filter((e) => !ended.includes(e.slug)).map(({ slug, label, section }) => ({ slug, label, section }))
 const nations = Object.values(usedTeams)
   .filter((t) => t.kind === 'national' && t.country)
   .map((t) => ({ name: t.name, code: t.country.startsWith('gb-') ? 'gb' : t.country }))
@@ -97,6 +108,7 @@ const site = {
   generatedAt: new Date(now).toISOString(),
   teams: usedTeams,
   competitions,
+  ended,
   news: articles,
   sources: report,
 }
