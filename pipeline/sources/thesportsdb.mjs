@@ -11,12 +11,21 @@ const API = `https://www.thesportsdb.com/api/v1/json/${KEY}`
 export const SOURCE = 'TheSportsDB'
 
 let lastCall = 0
+let limited = false
+/** True once the free key has been told to slow down on this run. */
+export const isLimited = () => limited
+
 async function get(path) {
-  // The free key allows about 30 calls a minute.
-  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? 2100) - Date.now()
+  if (limited) throw new Error('rate limited earlier in this run')
+  const wait = lastCall + Number(process.env.TSDB_INTERVAL_MS ?? 3000) - Date.now()
   if (wait > 0) await sleep(wait)
   lastCall = Date.now()
-  return fetchJson(`${API}/${path}`)
+  try {
+    return await fetchJson(`${API}/${path}`)
+  } catch (e) {
+    if (/^429\b/.test(e.message)) limited = true
+    throw e
+  }
 }
 
 const norm = (s = '') => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()

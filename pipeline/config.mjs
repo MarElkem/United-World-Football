@@ -123,7 +123,6 @@ export const newsFeeds = [
   { name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/football/rss.xml', lang: 'en' },
   { name: 'The Guardian', url: 'https://www.theguardian.com/football/rss', lang: 'en' },
   { name: 'Sky Sports', url: 'https://www.skysports.com/rss/12040', lang: 'en' },
-  { name: 'ESPN', url: 'https://www.espn.co.uk/espn/rss/football/news', lang: 'en' },
   {
     name: 'BBC Sport Africa', url: 'https://feeds.bbci.co.uk/sport/africa/rss.xml', lang: 'en',
     tags: [{ kind: 'confederation', id: 'caf', label: 'Africa' }],

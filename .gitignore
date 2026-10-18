@@ -28,3 +28,6 @@ public/data/
 
 # Cloudflare
 .wrangler/
+
+# Saved copies of rate-limited sources, kept between runs by Actions
+.cache/
