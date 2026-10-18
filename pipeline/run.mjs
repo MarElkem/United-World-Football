@@ -76,6 +76,11 @@ await writeJson(`${OUT}digest.json`, buildDigest({ competitions, teams: usedTeam
 const ok = report.filter((r) => r.ok).length
 console.log(`Wrote ${competitions.length} competitions, ${Object.keys(usedTeams).length} teams, ${articles.length} headlines to public/data.`)
 for (const r of report) console.log(`${r.ok ? 'ok  ' : 'FAIL'} ${r.source.padEnd(20)} ${r.competition.padEnd(22)} ${r.detail}`)
+// On GitHub Actions, show the report on the run page as well as in the log.
+if (process.env.GITHUB_ACTIONS) {
+  const line = (r) => `${r.ok ? 'ok' : 'FAILED'}: ${r.source} ${r.competition === '*' ? '' : r.competition} (${r.detail})`
+  console.log(`::notice title=Data sources::${report.map(line).join('%0A')}`)
+}
 if (!ok) {
   console.error('No source worked, so the site would have no data. Failing the build.')
   process.exit(1)
