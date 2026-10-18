@@ -1,0 +1,16 @@
+# The chat server: a free Cloudflare Worker that answers questions from the
+# site's own data with Workers AI (free plan: 10,000 neurons a day).
+name = "uwf-ask"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[ai]
+binding = "AI"
+
+[vars]
+# Where the site is published; the worker reads data/digest.json from here.
+SITE_URL = "https://YOUR-GITHUB-NAME.github.io/united-world-football/"
+# Only pages from this origin may call the worker.
+ALLOWED_ORIGIN = "https://YOUR-GITHUB-NAME.github.io"
+# A small model keeps each answer cheap, so the free daily allowance goes a long way.
+MODEL = "@cf/meta/llama-3.2-3b-instruct"

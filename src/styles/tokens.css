@@ -1,0 +1,132 @@
+/* United World Football design tokens (v2, editorial).
+   Three faces, each with one job:
+   - EA Sports (supplied): the brand voice. Wordmark, section and competition names, big headlines.
+   - Source Serif 4: editorial reading. News headlines, standfirsts, longer copy.
+   - IBM Plex Sans Condensed: data and interface. Tables, scores, fixtures, labels, buttons. */
+
+@import '@fontsource/ibm-plex-sans-condensed/latin-400.css';
+@import '@fontsource/ibm-plex-sans-condensed/latin-500.css';
+@import '@fontsource/ibm-plex-sans-condensed/latin-600.css';
+@import '@fontsource/ibm-plex-sans-condensed/latin-700.css';
+@import '@fontsource/source-serif-4/latin-400.css';
+@import '@fontsource/source-serif-4/latin-600.css';
+@import '@fontsource/source-serif-4/latin-400-italic.css';
+
+@font-face {
+  font-family: 'EA Sports';
+  src: url('../assets/fonts/EASPORTS15.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 100 900;
+  /* The supplied face only draws letters, digits, '!' and '.'; every other
+     glyph in it is blank, so punctuation falls through to Plex Condensed Bold. */
+  unicode-range: U+0020-0021, U+002E, U+0030-0039, U+0041-005A, U+0061-007A;
+}
+
+:root {
+  /* Solid colours only. One accent: the red of the marker dot in the sketch. */
+  --ink: #121310;
+  --ink-2: #3b3c37;
+  --ink-3: #6d6c65;
+  --ink-4: #9a988f;
+  --paper: #f3f1ea;
+  --paper-2: #e9e6dd;
+  --paper-3: #dcd8cc;
+  --surface: #faf9f5;
+  --rule: #12131024;
+  --rule-strong: #121310;
+  --accent: #d1281c;
+  --accent-text: #b3211a;
+  --accent-ink: #ffffff;
+  --win: #121310;
+  --draw: #9a988f;
+  /* The masthead band stays dark in both themes. */
+  --band: #121310;
+  --band-2: #1e1f1b;
+  --band-text: #f3f1ea;
+  --band-muted: #a6a49b;
+  --band-rule: #f3f1ea2e;
+  --focus: #d1281c;
+  --pop-shadow: 0 10px 30px -12px #12131059, 0 2px 6px -2px #12131026;
+
+  --font-brand: 'EA Sports', 'IBM Plex Sans Condensed', 'Arial Narrow', Arial, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-ui: 'IBM Plex Sans Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Type scale (UI) */
+  --t-xs: 11px;
+  --t-sm: 13px;
+  --t-md: 15px;
+  --t-lg: 18px;
+
+  /* Spacing (4px base) */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+
+  --radius: 2px;
+  --margin: max(16px, min(3.2vw, 48px));
+  --sidebar: 272px;
+  --newscol: 360px;
+  --max: 1760px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ink: #eceae2;
+    --ink-2: #c9c6bc;
+    --ink-3: #9c998f;
+    --ink-4: #75736b;
+    --paper: #141512;
+    --paper-2: #1c1d1a;
+    --paper-3: #2a2b27;
+    --surface: #191a17;
+    --rule: #eceae224;
+    --rule-strong: #eceae2;
+    --accent: #ec4434;
+    --accent-text: #f2685a;
+    --accent-ink: #ffffff;
+    --win: #eceae2;
+    --draw: #75736b;
+    --band: #0b0c0a;
+    --band-2: #181916;
+    --band-text: #eceae2;
+    --band-muted: #9c998f;
+    --band-rule: #eceae22e;
+    --focus: #ec4434;
+    --pop-shadow: 0 10px 30px -10px #000000b3, 0 2px 6px -2px #00000066;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ink: #eceae2;
+  --ink-2: #c9c6bc;
+  --ink-3: #9c998f;
+  --ink-4: #75736b;
+  --paper: #141512;
+  --paper-2: #1c1d1a;
+  --paper-3: #2a2b27;
+  --surface: #191a17;
+  --rule: #eceae224;
+  --rule-strong: #eceae2;
+  --accent: #ec4434;
+  --accent-text: #f2685a;
+  --accent-ink: #ffffff;
+  --win: #eceae2;
+  --draw: #75736b;
+  --band: #0b0c0a;
+  --band-2: #181916;
+  --band-text: #eceae2;
+  --band-muted: #9c998f;
+  --band-rule: #eceae22e;
+  --focus: #ec4434;
+  --pop-shadow: 0 10px 30px -10px #000000b3, 0 2px 6px -2px #00000066;
+  color-scheme: dark;
+}

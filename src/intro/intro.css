@@ -1,0 +1,181 @@
+/* Opening sequence: a solid dark stage, the wordmark, the slogan and the
+   football Earth, which then flies into its place in the masthead banner. */
+.intro {
+  --t: 1.5;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--band);
+  color: var(--band-text);
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+}
+.intro-short { --t: 0.35; }
+
+.intro-stage {
+  position: relative;
+  height: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(28px, 7vh, 80px) var(--margin);
+  display: flex;
+  flex-direction: column;
+}
+
+.intro-word {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: 400;
+  /* Keep the wordmark clear of the globe on the right (the EA face runs wide). */
+  font-size: clamp(56px, min(15vw, 20vh, calc((94vw - min(80vh, 54vw) - 40px) / 4.8)), 220px);
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+.intro-word .w {
+  display: block;
+  clip-path: inset(0 0 -10% 0);
+  animation: rise calc(0.7s * max(var(--t), 0.5)) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.intro-word .w1 { animation-delay: calc(0.5s * var(--t)); }
+.intro-word .w2 { animation-delay: calc(0.65s * var(--t)); }
+.intro-word .w3 { animation-delay: calc(0.8s * var(--t)); }
+.intro-word .dot { color: var(--accent); }
+
+@keyframes rise {
+  from { transform: translateY(105%); }
+  to { transform: none; }
+}
+
+.intro-slogan {
+  position: relative;
+  z-index: 2;
+  margin: clamp(16px, 3.4vh, 32px) 0 0;
+  font-family: var(--font-brand);
+  font-size: clamp(17px, min(2.4vw, 3.8vh), 36px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.slogan-text {
+  display: inline-block;
+  animation: wipe calc(0.8s * max(var(--t), 0.5)) cubic-bezier(0.6, 0, 0.2, 1) calc(1.4s * var(--t)) both;
+}
+@keyframes wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* "Football" in six languages, set as a quiet typographic line. */
+.intro-notes {
+  position: relative;
+  z-index: 2;
+  margin: auto 0 0;
+  padding: 18px 0 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  border-top: 1px solid var(--band-rule);
+  max-width: min(100%, calc(94vw - min(80vh, 54vw)));
+}
+.intro-notes li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-brand);
+  font-size: clamp(16px, min(1.9vw, 3vh), 28px);
+  color: var(--accent);
+  text-transform: uppercase;
+  animation: fade 0.4s ease calc((2s + var(--i) * 0.12s) * var(--t)) both;
+}
+.note-lang { font-family: var(--font-ui); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--band-muted); }
+.note-word:lang(ar), .note-word:lang(ja) {
+  font-weight: 700;
+  font-family: 'Noto Sans Arabic', 'Geeza Pro', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', var(--font-ui);
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.intro-globe {
+  position: absolute;
+  z-index: 1;
+  right: var(--margin);
+  top: 50%;
+  margin-top: calc(min(80vh, 54vw) / -2);
+  width: min(80vh, 54vw);
+  aspect-ratio: 1;
+  animation: globe-in calc(1.1s * max(var(--t), 0.5)) cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.1s * var(--t)) both;
+}
+.intro-globe-canvas { position: absolute; inset: 0; }
+@keyframes globe-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.skip {
+  position: absolute;
+  z-index: 3;
+  right: var(--margin);
+  bottom: clamp(20px, 4vh, 40px);
+  font: 600 13px/1 var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--band-text);
+  background: transparent;
+  border: 1px solid var(--band-text);
+  border-radius: var(--radius);
+  padding: 11px 16px;
+  cursor: pointer;
+}
+.skip:hover { background: var(--band-text); color: var(--band); }
+
+/* Hand-off: the globe travels to its place in the banner while the rest fades. */
+.intro.leaving {
+  background: transparent;
+  pointer-events: none;
+}
+.intro.leaving .intro-word,
+.intro.leaving .intro-slogan,
+.intro.leaving .intro-notes,
+.intro.leaving .skip {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.intro.leaving .intro-globe {
+  animation: none;
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.2, 1), opacity 0.2s ease 0.55s;
+  transform: translate(var(--fly-x, 0), var(--fly-y, 0)) scale(var(--fly-s, 1));
+  opacity: 0;
+}
+
+.intro-still *,
+.intro-still .w,
+.intro-still li,
+.intro-still .slogan-text,
+.intro-still .intro-globe {
+  animation: none !important;
+}
+.intro-still.leaving .intro-globe { transition: opacity 0.25s; transform: none; }
+
+@media (orientation: portrait), (max-width: 720px) {
+  .intro-word { font-size: clamp(52px, 17vw, 150px); }
+  .intro-notes { max-width: 100%; margin-top: 3vh; gap: 6px 18px; }
+  .intro-notes li { font-size: clamp(15px, 4.2vw, 24px); }
+  .intro-globe {
+    top: auto;
+    margin-top: 0;
+    right: 50%;
+    bottom: 12vh;
+    width: min(92vw, 46vh);
+    margin-right: calc(min(92vw, 46vh) / -2);
+  }
+}
+
+/* The first visit takes its time: a slower flight into the banner. */
+.intro-full.leaving .intro-globe {
+  transition: transform 0.95s cubic-bezier(0.6, 0, 0.2, 1), opacity 0.2s ease 0.8s;
+}
