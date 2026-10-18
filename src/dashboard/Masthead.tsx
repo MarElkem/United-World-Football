@@ -50,10 +50,12 @@ export function Dateline(props: {
   )
 }
 
-/** Brand, the three sections, the News switch and the assistant. */
-export function TopNav({ section, setSection, news, setNews, children }: {
+/** Brand, the three sections and For you, the News switch and the assistant. */
+export function TopNav({ section, setSection, forYou, openForYou, news, setNews, children }: {
   section: Section
   setSection: (s: Section) => void
+  forYou: boolean
+  openForYou: () => void
   news: boolean
   setNews: (v: boolean) => void
   children?: ReactNode
@@ -66,11 +68,15 @@ export function TopNav({ section, setSection, news, setNews, children }: {
         </a>
         <nav className="sections" aria-label="Sections">
           {sections.map((s) => (
-            <button key={s.id} className="section-tab" aria-pressed={section === s.id} onClick={() => setSection(s.id)}>
+            <button key={s.id} className="section-tab" aria-pressed={!forYou && section === s.id} onClick={() => setSection(s.id)}>
               <span className="section-tab-label">{s.label}</span>
               <span className="section-tab-sub">{s.sub}</span>
             </button>
           ))}
+          <button className="section-tab" aria-pressed={forYou} onClick={openForYou}>
+            <span className="section-tab-label">For you</span>
+            <span className="section-tab-sub">Your clubs and countries</span>
+          </button>
         </nav>
         <div className="topnav-end">
           <button className="news-switch" role="switch" aria-checked={news} onClick={() => setNews(!news)}>

@@ -4,6 +4,8 @@ import { competitionsFor, defaultCompetition, entryCountry, entryRegion, newsFor
 import type { Section } from './data/types'
 import { CompetitionView, type Tab } from './dashboard/CompetitionView'
 import { Dropdown } from './dashboard/Dropdown'
+import { ForYou } from './dashboard/ForYou'
+import type { Follow } from './data/follows'
 import { FeatureBanner } from './dashboard/FeatureBanner'
 import { Hero } from './dashboard/Hero'
 import { Dateline, TopNav, type ThemePref } from './dashboard/Masthead'
@@ -27,6 +29,8 @@ export default function App() {
   const [theme, setTheme] = usePref<ThemePref>('theme', 'auto')
   const [news, setNews] = usePref('news', true)
   const [section, setSection] = usePref<Section>('section', 'nations')
+  const [forYou, setForYou] = usePref('for-you', false)
+  const [follows, setFollows] = usePref<Follow[]>('follows', [])
   const [sideCollapsed, setSideCollapsed] = usePref('sidebar-collapsed', false)
   const [intro, setIntro] = useState<'full' | 'short' | 'still' | null>(() => (!motion ? 'still' : hasSeenIntro() ? 'short' : 'full'))
 
@@ -115,6 +119,7 @@ export default function App() {
   }
 
   const changeSection = (s: Section) => {
+    setForYou(false)
     setSection(s)
     const d = defaultCompetition(s, region, countryKey)
     setSlug(d?.slug ?? '')
@@ -135,7 +140,7 @@ export default function App() {
   }))
   const suggestions = catalog.filter((e) => e.section === section && withData.has(e.slug))
 
-  const looking = [
+  const looking = forYou ? `the For you page, following ${follows.length} clubs and countries` : [
     `the ${sectionTitle[section]} section`,
     country ? `country ${country.name}` : region ? `continent ${regionLabel(region)}` : 'the whole world',
     entry ? `competition ${entry.label} (slug ${entry.slug})${withData.has(entry.slug) ? '' : ', which has no data yet'}` : 'no competition open',
@@ -166,56 +171,69 @@ export default function App() {
         }}
         onWalkthrough={() => setTour(true)}
       />
-      <TopNav section={section} setSection={changeSection} news={news} setNews={setNews}>
+      <TopNav section={section} setSection={changeSection} forYou={forYou} openForYou={() => setForYou(true)} news={news} setNews={setNews}>
         <Chat looking={looking} openSlug={entry?.slug} suggestions={chatSuggestions} />
       </TopNav>
 
       <main className="main">
-        <Hero
-          section={section}
-          motion={motion}
-          globeOn={!intro}
-          region={region}
-          regions={regionsFor(section)}
-          country={country}
-          focus={focus}
-          onPickCountry={pickCountry}
-          onPickRegion={pickRegion}
-          competitions={placeComps}
-          withData={withData}
-          activeSlug={slug}
-          onPickCompetition={(s) => pickCompetition(s, true)}
-        />
-
-        <ScoreStrip section={section} onPick={(s) => pickCompetition(s, true)} />
-
-        <div className={`board ${sideCollapsed ? 'side-collapsed' : ''}`}>
-          <Sidebar
-            entries={competitionsFor(section, null)}
-            region={region}
-            activeSlug={slug}
-            withData={withData}
-            onPick={(s) => pickCompetition(s)}
-            collapsed={sideCollapsed}
-            setCollapsed={setSideCollapsed}
+        {forYou ? (
+          <ForYou
+            follows={follows}
+            setFollows={setFollows}
+            onOpenCompetition={(s) => {
+              changeSection('clubs')
+              pickCompetition(s, true)
+            }}
           />
+        ) : (
+          <>
+            <Hero
+              section={section}
+              motion={motion}
+              globeOn={!intro}
+              region={region}
+              regions={regionsFor(section)}
+              country={country}
+              focus={focus}
+              onPickCountry={pickCountry}
+              onPickRegion={pickRegion}
+              competitions={placeComps}
+              withData={withData}
+              activeSlug={slug}
+              onPickCompetition={(s) => pickCompetition(s, true)}
+            />
 
-          <section id="matches" className="matches" aria-label="Tables and fixtures" tabIndex={-1}>
-            <div className="pickers">
-              <Dropdown id="pick-region" label="Continent" value={region} options={regionOptions} onChange={pickRegion} />
-              <Dropdown id="pick-comp" label={section === 'clubs' ? 'League' : 'Competition'} value={slug} options={compOptions} onChange={(s) => pickCompetition(s)} />
+            <ScoreStrip section={section} onPick={(s) => pickCompetition(s, true)} />
+
+            <div className={`board ${sideCollapsed ? 'side-collapsed' : ''}`}>
+              <Sidebar
+                entries={competitionsFor(section, null)}
+                region={region}
+                activeSlug={slug}
+                withData={withData}
+                onPick={(s) => pickCompetition(s)}
+                collapsed={sideCollapsed}
+                setCollapsed={setSideCollapsed}
+              />
+
+              <section id="matches" className="matches" aria-label="Tables and fixtures" tabIndex={-1}>
+                <div className="pickers">
+                  <Dropdown id="pick-region" label="Continent" value={region} options={regionOptions} onChange={pickRegion} />
+                  <Dropdown id="pick-comp" label={section === 'clubs' ? 'League' : 'Competition'} value={slug} options={compOptions} onChange={(s) => pickCompetition(s)} />
+                </div>
+                {entry ? (
+                  <CompetitionView key={entry.slug} entry={entry} comp={comp} tab={tab} onTab={setTab} suggestions={suggestions} />
+                ) : (
+                  <p className="muted">Choose a competition.</p>
+                )}
+              </section>
+
+              {news && <NewsColumn section={section} placeName={placeName} placeNews={placeNews} />}
             </div>
-            {entry ? (
-              <CompetitionView key={entry.slug} entry={entry} comp={comp} tab={tab} onTab={setTab} suggestions={suggestions} />
-            ) : (
-              <p className="muted">Choose a competition.</p>
-            )}
-          </section>
 
-          {news && <NewsColumn section={section} placeName={placeName} placeNews={placeNews} />}
-        </div>
-
-        <FeatureBanner section={section} onOpen={(s) => pickCompetition(s, true)} />
+            <FeatureBanner section={section} onOpen={(s) => pickCompetition(s, true)} />
+          </>
+        )}
       </main>
 
       <footer className="foot">
@@ -235,6 +253,11 @@ export default function App() {
                     </button>
                   </li>
                 ))}
+                <li>
+                  <button className="foot-link" onClick={() => { setForYou(true); window.scrollTo({ top: 0, behavior: motion ? 'smooth' : 'auto' }) }}>
+                    For you
+                  </button>
+                </li>
               </ul>
             </div>
             <div>
