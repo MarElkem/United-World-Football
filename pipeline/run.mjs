@@ -50,7 +50,7 @@ async function attempt(source, slug, fn) {
   try {
     const c = await fn()
     const played = c.matches.filter((m) => m.score).length
-    report.push({ source, competition: slug, ok: true, detail: `${c.matches.length} matches, ${played} with scores${c.via ? ` (${c.via})` : ''}` })
+    report.push({ source, competition: slug, ok: true, detail: `${c.season}: ${c.matches.length} matches, ${played} with scores${c.via ? ` (${c.via})` : ''}` })
     delete c.via
     return c
   } catch (e) {
