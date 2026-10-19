@@ -132,18 +132,22 @@ async function scoreboard(code, from, to) {
     for (let t = start; t <= end && days.size < 60; t += 86400000) days.add(ymd(t))
   }
   const events = new Map((today.events ?? []).map((e) => [e.id, e]))
+  // The season each dated answer says it belongs to, newest last.
+  const seasons = []
   let ok = 0
   let failed = ''
   for (const d of days) {
     try {
-      for (const e of (await get(`${url}?dates=${d}`)).events ?? []) events.set(e.id, e)
+      const b = await get(`${url}?dates=${d}`)
+      for (const e of b.events ?? []) events.set(e.id, { ...e, seasonOf: e.season ?? b.leagues?.[0]?.season })
+      if (b.events?.length && b.leagues?.[0]?.season) seasons.push(b.leagues[0].season)
       ok++
     } catch (e) {
       failed ||= String(e.message).split(' for ')[0]
     }
   }
   const via = `${ok}/${days.size} match days${failed ? `, ${failed}` : ''}`
-  return { via, dated: ok > 0, board: { ...today, events: [...events.values()] } }
+  return { via, dated: ok > 0, seasons, board: { ...today, events: [...events.values()] } }
 }
 
 // When ESPN does not know a code, list the codes it has for that country.
@@ -162,15 +166,25 @@ async function codesLike(code) {
 export async function competition(cfg, teams, now = Date.now()) {
   const back = Number(process.env.ESPN_DAYS_BACK ?? 28)
   const ahead = Number(process.env.ESPN_DAYS_AHEAD ?? 28)
-  const { via, dated, board } = await scoreboard(cfg.espn, now - back * 86400000, now + ahead * 86400000)
+  const { via, dated, seasons, board } = await scoreboard(cfg.espn, now - back * 86400000, now + ahead * 86400000)
+  // The season of the latest match day, not the one the plain scoreboard
+  // shows: between seasons ESPN keeps showing the one that ended.
+  const season = seasons.at(-1) ?? board.leagues?.[0]?.season
+  const year = season?.year
+  const thisSeason = (e) => !year || !e.seasonOf?.year || e.seasonOf.year === year
   const matches = (board.events ?? [])
+    .filter(thisSeason)
     .map((e) => toMatch(e, cfg, teams))
     .filter((m) => m.homeId && m.awayId)
     .sort((a, b) => a.kickoff.localeCompare(b.kickoff))
 
   const stages = []
-  const table = await get(`${STANDINGS}/${cfg.espn}/standings`).catch(() => ({}))
-  const parts = (table.children?.length ? table.children : [table]).filter((p) => p.standings?.entries?.length)
+  const table = await get(`${STANDINGS}/${cfg.espn}/standings${year ? `?season=${year}` : ''}`).catch(() => ({}))
+  // A table from another season (last year's group stage) is left out.
+  const tableYear = (p) => p.standings?.season ?? p.season?.year ?? table.season?.year
+  const parts = (table.children?.length ? table.children : [table])
+    .filter((p) => p.standings?.entries?.length)
+    .filter((p) => !year || !tableYear(p) || Number(tableYear(p)) === Number(year))
   const groups = parts
     .map((p, i) => ({ id: p.abbreviation || p.id || `g${i + 1}`, name: p.name || 'Table', table: toTable(p.standings.entries, cfg, teams) }))
     .filter((g) => g.table.length >= 4)
@@ -182,7 +196,6 @@ export async function competition(cfg, teams, now = Date.now()) {
   // Today's scoreboard alone would make a running league look finished.
   if (!dated) throw new Error(`${cfg.espn}: only today's matches (${via})`)
 
-  const season = board.leagues?.[0]?.season
   const played = matches.filter((m) => m.score).map((m) => m.kickoff).sort()
   return {
     id: cfg.slug,

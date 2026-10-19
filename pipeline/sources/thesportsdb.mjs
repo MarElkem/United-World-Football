@@ -131,11 +131,25 @@ function toRow(r, cfg, teams) {
   }
 }
 
+/**
+ * TheSportsDB's "current season" can lag behind (still 2025-2026 in October
+ * 2026). A season whose last year ended more than two months ago is treated
+ * as over, so its old fixtures and table are not fetched.
+ */
+export function seasonOver(season, now = Date.now()) {
+  const years = (season.match(/\d{4}/g) ?? []).map(Number)
+  if (!years.length) return false
+  const last = Math.max(...years)
+  const end = years.length > 1 ? Date.UTC(last, 5, 30) : Date.UTC(last, 11, 31)
+  return now > end + 60 * 86400000
+}
+
 export async function competition(cfg, teams, now = Date.now()) {
   const league = await findLeague(cfg)
   const id = league.idLeague
   const info = league.strCurrentSeason ? league : ((await get(`lookupleague.php?id=${id}`)).leagues?.[0] ?? {})
-  const season = info.strCurrentSeason || ''
+  const listed = info.strCurrentSeason || ''
+  const season = seasonOver(listed, now) ? '' : listed
 
   // One at a time, to stay inside the rate limit.
   const paths = [

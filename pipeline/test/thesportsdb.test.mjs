@@ -55,3 +55,12 @@ test('a league it cannot find is an error, not empty data', async () => {
   mock([])
   await assert.rejects(competition({ ...cfg, tsdb: ['Nowhere League'] }, new Teams()), /no league named/)
 })
+
+test('a lagging current season is treated as over', async () => {
+  const { seasonOver } = await import('../sources/thesportsdb.mjs')
+  const oct2026 = Date.UTC(2026, 9, 19)
+  assert.equal(seasonOver('2025-2026', oct2026), true)
+  assert.equal(seasonOver('2026-2027', oct2026), false)
+  assert.equal(seasonOver('2026', oct2026), false)
+  assert.equal(seasonOver('2025', oct2026), true)
+})

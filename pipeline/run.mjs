@@ -32,12 +32,17 @@ const ended = []
 
 // Only tournaments being played now: one that has finished, or whose first
 // match is more than two weeks off, is left out (and hidden from the sidebar).
+// A source can also serve last season (an old table, last year's results), so
+// a competition with no match in the last 30 days or the next 14 is left out.
 function keep(c) {
-  const first = c.matches.map((m) => m.kickoff).sort()[0]
-  const farOff = c.status === 'upcoming' && (!first || new Date(first).getTime() - now > 14 * 86400000)
-  if (c.status === 'completed' || farOff) {
+  const times = c.matches.map((m) => new Date(m.kickoff).getTime())
+  const first = Math.min(...times)
+  const farOff = c.status === 'upcoming' && (!times.length || first - now > 14 * 86400000)
+  const recent = times.some((t) => t > now - 30 * 86400000 && t < now + 14 * 86400000)
+  const why = c.status === 'completed' ? 'finished' : farOff ? 'not started yet' : !recent ? 'no matches in the last 30 days or the next 14' : ''
+  if (why) {
     ended.push(c.slug)
-    report.push({ source: c.stamp.source, competition: c.slug, ok: true, detail: `left out: ${c.status === 'completed' ? 'finished' : 'not started yet'}` })
+    report.push({ source: c.stamp.source, competition: c.slug, ok: true, detail: `left out: ${why}` })
   } else competitions.push(c)
 }
 
@@ -70,7 +75,9 @@ for (const cfg of [...leagues, ...cups, ...extras]) {
 // competitions with the oldest copies and serves the rest from a cache that
 // GitHub Actions keeps between runs (.cache/, see the workflow).
 const CACHE = new URL('../.cache/tsdb/', import.meta.url).pathname
-const readCache = (slug) => readFile(`${CACHE}${slug}.json`, 'utf8').then(JSON.parse).catch(() => null)
+// Bump CACHE_VERSION when the adapter changes what it keeps, so old copies are dropped.
+const CACHE_VERSION = 2
+const readCache = (slug) => readFile(`${CACHE}${slug}.json`, 'utf8').then(JSON.parse).then((h) => (h.v === CACHE_VERSION ? h : null)).catch(() => null)
 const queue = await Promise.all(tsdbQueue.map(async (cfg) => ({ cfg, hit: await readCache(cfg.slug) })))
 queue.sort((a, b) => (a.hit?.fetchedAt ?? '').localeCompare(b.hit?.fetchedAt ?? ''))
 let budget = Number(process.env.TSDB_BUDGET ?? (tsdb.isPremium ? 99 : 6))
@@ -79,7 +86,7 @@ for (const { cfg, hit } of queue) {
   if (budget > 0 && !tsdb.isLimited()) {
     budget--
     c = await attempt(tsdb.SOURCE, cfg.slug, () => tsdb.competition(cfg, teams, now))
-    if (c) await writeJson(`${CACHE}${cfg.slug}.json`, { fetchedAt: new Date(now).toISOString(), competition: c, teams: teams.usedBy([c]) })
+    if (c) await writeJson(`${CACHE}${cfg.slug}.json`, { v: CACHE_VERSION, fetchedAt: new Date(now).toISOString(), competition: c, teams: teams.usedBy([c]) })
   }
   if (!c && hit && now - new Date(hit.fetchedAt).getTime() < 2 * 86400000) {
     for (const [id, t] of Object.entries(hit.teams)) teams.add(id, t)
