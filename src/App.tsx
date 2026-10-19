@@ -17,15 +17,15 @@ import { confInfo, countryByKey, type Country } from './globe/geo'
 import { Intro } from './intro/Intro'
 import { Chat } from './assistant/Chat'
 import { Walkthrough } from './walkthrough/Walkthrough'
-import { hasSeenIntro, markIntroSeen, useMedia, usePref } from './prefs'
+import { hasSeenIntro, markIntroSeen, usePref } from './prefs'
 import { kickoffLocal } from './dashboard/time'
 
 const sectionTitle: Record<Section, string> = { nations: 'Nations', clubs: 'Clubs', intercontinental: 'Intercontinental' }
 
 export default function App() {
-  const systemReduced = useMedia('(prefers-reduced-motion: reduce)')
   const [motionPref, setMotionPref] = usePref<boolean | null>('motion', null)
-  const motion = motionPref ?? !systemReduced
+  // Motion is on for everyone until they switch it off (kiki, 2026-10-19).
+  const motion = motionPref ?? true
   const [theme, setTheme] = usePref<ThemePref>('theme', 'auto')
   const [news, setNews] = usePref('news', true)
   const [section, setSection] = usePref<Section>('section', 'nations')

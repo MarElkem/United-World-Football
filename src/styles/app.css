@@ -593,9 +593,8 @@ main:focus, section:focus { outline: none; }
   .hide-md { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-}
+/* Motion off (the switch in the dateline) stills every transition. */
+.still *, .still *::before, .still *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 
 @media (max-width: 400px) {
 }
