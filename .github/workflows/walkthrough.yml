@@ -1,0 +1,36 @@
+name: Record walkthrough
+
+# Run by hand from the Actions tab. Records the live site and saves a GIF and
+# an MP4 to the "media" branch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y ffmpeg
+      - name: Record
+        run: node scripts/record-walkthrough.mjs
+      - name: Save to the media branch
+        run: |
+          cp walkthrough/walkthrough.gif walkthrough/walkthrough.mp4 "$RUNNER_TEMP/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan media
+          git rm -rfq .
+          cp "$RUNNER_TEMP/walkthrough.gif" "$RUNNER_TEMP/walkthrough.mp4" .
+          git add walkthrough.gif walkthrough.mp4
+          git commit -qm "Walkthrough recording"
+          git push -f origin media
