@@ -23,76 +23,96 @@ await context.addInitScript(() => {
 })
 const page = await context.newPage()
 const pause = (ms) => page.waitForTimeout(ms)
+const steps = []
+// Each step is reported, and a step that fails is skipped rather than ending
+// the recording.
+async function step(name, fn) {
+  try {
+    await fn()
+    steps.push(`ok ${name}`)
+  } catch (e) {
+    steps.push(`FAILED ${name}: ${String(e.message).split('\n')[0]}`)
+  }
+}
+process.on('uncaughtException', (e) => {
+  console.log(`::error title=Recording::${String(e.stack).replace(/\n/g, '%0A')}`)
+  process.exit(1)
+})
 async function moveTo(locator, click = true) {
-  const box = await locator.boundingBox()
-  if (!box) return
+  const box = await locator.boundingBox({ timeout: 5000 })
+  if (!box) throw new Error('not on screen')
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 18 })
   if (click) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
 }
 
-await page.goto(SITE, { waitUntil: 'networkidle' })
+await page.goto(SITE, { waitUntil: 'load', timeout: 60000 })
 // The opening sequence, then the page.
-await page.waitForSelector('.hero-globe', { timeout: 30000 })
+await step('page', () => page.waitForSelector('.hero-globe', { timeout: 30000 }))
 await pause(9500)
 
-// Turn the football Earth.
-const globe = page.locator('.hero-globe')
-const g = await globe.boundingBox()
-if (g) {
+await step('turn the globe', async () => {
+  const g = await page.locator('.hero-globe').boundingBox({ timeout: 5000 })
   await page.mouse.move(g.x + g.width * 0.7, g.y + g.height * 0.5, { steps: 10 })
   await page.mouse.down()
   await page.mouse.move(g.x + g.width * 0.3, g.y + g.height * 0.45, { steps: 40 })
   await page.mouse.up()
   await pause(800)
-}
-// Jump to Africa, then open Clubs.
-await moveTo(page.locator('.hero-regions .hero-link', { hasText: 'Africa' }).first())
-await pause(1800)
-await moveTo(page.locator('.section-tab', { hasText: 'Clubs' }))
-await pause(1500)
-await moveTo(page.locator('.hero-comps .hero-link').first())
-await pause(1200)
-await page.locator('#matches').scrollIntoViewIfNeeded()
-await page.evaluate(() => document.getElementById('matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-await pause(2600)
-await page.mouse.wheel(0, 500)
-await pause(1600)
-
-// Ask the assistant.
-await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
-await pause(1000)
-await moveTo(page.locator('.ask-btn'))
-await pause(600)
-await page.locator('#chat-input').click()
-await page.keyboard.type('Who is top of the Bundesliga?', { delay: 70 })
-await page.keyboard.press('Enter')
-await pause(2800)
-await moveTo(page.locator('.chat-close'))
-await pause(500)
-
-// For you: follow a club and a country.
-await moveTo(page.locator('.section-tab', { hasText: 'For you' }))
-await pause(1000)
-await page.locator('.fy-input').click()
-await page.keyboard.type('Arsenal', { delay: 110 })
-await pause(700)
-await page.keyboard.press('Enter')
-await pause(600)
-await page.keyboard.type('Moro', { delay: 120 })
-await pause(700)
-await page.keyboard.press('Enter')
-await pause(1500)
-await page.mouse.wheel(0, 450)
-await pause(2200)
-
-// Dark mode.
-await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
-await pause(800)
-const theme = page.locator('.dateline-tools .tool').first()
-await moveTo(theme)
-await pause(400)
-await moveTo(theme)
-await pause(2200)
+})
+await step('Africa', async () => {
+  await moveTo(page.locator('.hero-regions .hero-link', { hasText: 'Africa' }).first())
+  await pause(1800)
+})
+await step('Clubs', async () => {
+  await moveTo(page.locator('.section-tab', { hasText: 'Clubs' }))
+  await pause(1500)
+})
+await step('a competition', async () => {
+  await moveTo(page.locator('.hero-comps .hero-link').first())
+  await pause(1200)
+})
+await step('tables', async () => {
+  await page.evaluate(() => document.getElementById('matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  await pause(2600)
+  await page.mouse.wheel(0, 500)
+  await pause(1600)
+})
+await step('ask', async () => {
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  await pause(1000)
+  await moveTo(page.locator('.ask-btn'))
+  await pause(600)
+  await page.locator('#chat-input').click({ timeout: 5000 })
+  await page.keyboard.type('Who is top of the Bundesliga?', { delay: 70 })
+  await page.keyboard.press('Enter')
+  await pause(2800)
+  await moveTo(page.locator('.chat-close'))
+  await pause(500)
+})
+await step('for you', async () => {
+  await moveTo(page.locator('.section-tab', { hasText: 'For you' }))
+  await pause(1000)
+  await page.locator('.fy-input').click({ timeout: 5000 })
+  await page.keyboard.type('Arsenal', { delay: 110 })
+  await pause(700)
+  await page.keyboard.press('Enter')
+  await pause(600)
+  await page.keyboard.type('Moro', { delay: 120 })
+  await pause(700)
+  await page.keyboard.press('Enter')
+  await pause(1500)
+  await page.mouse.wheel(0, 450)
+  await pause(2200)
+})
+await step('dark mode', async () => {
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  await pause(800)
+  const theme = page.locator('.dateline-tools .tool').first()
+  await moveTo(theme)
+  await pause(400)
+  await moveTo(theme)
+  await pause(2200)
+})
+console.log(`::notice title=Recording steps::${steps.join('%0A')}`)
 
 await context.close()
 await browser.close()
