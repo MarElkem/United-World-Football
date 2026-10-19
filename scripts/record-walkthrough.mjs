@@ -58,16 +58,16 @@ await step('turn the globe', async () => {
   await page.mouse.up()
   await pause(800)
 })
-await step('Africa', async () => {
-  await moveTo(page.locator('.hero-regions .hero-link', { hasText: 'Africa' }).first())
-  await pause(1800)
-})
 await step('Clubs', async () => {
   await moveTo(page.locator('.section-tab').filter({ has: page.getByText('Clubs', { exact: true }) }))
   await pause(1500)
 })
-await step('a competition', async () => {
-  await moveTo(page.locator('.hero-comps .hero-link').first())
+await step('Europe', async () => {
+  await moveTo(page.locator('.hero-regions .hero-link', { hasText: 'Europe' }).first())
+  await pause(1800)
+})
+await step('Premier League', async () => {
+  await moveTo(page.locator('.hero-comps .hero-link', { hasText: 'Premier League' }).first())
   await pause(1200)
 })
 await step('tables', async () => {
@@ -120,6 +120,9 @@ await browser.close()
 const video = readdirSync(`${OUT}/raw`).find((f) => f.endsWith('.webm'))
 renameSync(`${OUT}/raw/${video}`, `${OUT}/walkthrough.webm`)
 const ff = (...a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a], { stdio: 'inherit' })
-ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', `${OUT}/walkthrough.mp4`)
-ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-vf', 'fps=12,scale=900:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=160:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle', `${OUT}/walkthrough.gif`)
+// The recording runs on a GPU-less machine, so the page stalls in places;
+// mpdecimate drops most of the repeated frames and setpts closes the gaps.
+const tighten = 'fps=15,mpdecimate=max=3:hi=768:lo=320:frac=0.5,setpts=N/15/TB'
+ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-vf', `${tighten},scale=1280:-2`, '-r', '15', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', `${OUT}/walkthrough.mp4`)
+ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-vf', `${tighten},fps=12,scale=900:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=160:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, `${OUT}/walkthrough.gif`)
 console.log(readdirSync(OUT))
