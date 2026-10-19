@@ -63,7 +63,7 @@ await step('Africa', async () => {
   await pause(1800)
 })
 await step('Clubs', async () => {
-  await moveTo(page.locator('.section-tab', { hasText: 'Clubs' }))
+  await moveTo(page.locator('.section-tab').filter({ has: page.getByText('Clubs', { exact: true }) }))
   await pause(1500)
 })
 await step('a competition', async () => {
