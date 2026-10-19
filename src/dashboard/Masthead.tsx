@@ -73,7 +73,7 @@ export function TopNav({ section, setSection, forYou, openForYou, news, setNews,
               <span className="section-tab-sub">{s.sub}</span>
             </button>
           ))}
-          <button className="section-tab" aria-pressed={forYou} onClick={openForYou}>
+          <button className="section-tab section-tab-foryou" aria-pressed={forYou} onClick={openForYou}>
             <span className="section-tab-label">For you</span>
             <span className="section-tab-sub">Your clubs and countries</span>
           </button>

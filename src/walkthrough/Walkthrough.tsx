@@ -8,6 +8,7 @@ interface Step {
 
 const STEPS: Step[] = [
   { target: '.sections', title: 'Pick a section', body: 'Nations is national teams, Clubs is domestic leagues, and Intercontinental is club competitions between continents. Everything on the page follows the section you pick.' },
+  { target: '.section-tab-foryou', title: 'For you', body: 'Follow the clubs and countries you care about, and see only their fixtures, results and news.' },
   { target: '.hero-globe', title: 'Turn the Earth', body: 'Drag the ball to turn the world. Tap any country to light it up; the banner, tables and news all follow.' },
   { target: '.hero-regions', title: 'Jump to a continent', body: 'Turn the globe to a continent and fade out the rest of the world. Whole world clears it.' },
   { target: '.hero-comps', title: 'Competitions here', body: 'The competitions for the place you picked. Choose one to open its table below.' },

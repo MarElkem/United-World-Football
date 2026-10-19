@@ -45,73 +45,26 @@ async function moveTo(locator, click = true) {
   if (click) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
 }
 
+// The short opening, as a returning visitor sees it.
+await context.addInitScript(() => localStorage.setItem('uwf:introSeen', 'true'))
 await page.goto(SITE, { waitUntil: 'load', timeout: 60000 })
-// The opening sequence, then the page.
 await step('page', () => page.waitForSelector('.hero-globe', { timeout: 30000 }))
-await pause(9500)
+await pause(5000)
 
-await step('turn the globe', async () => {
-  const g = await page.locator('.hero-globe').boundingBox({ timeout: 5000 })
-  await page.mouse.move(g.x + g.width * 0.7, g.y + g.height * 0.5, { steps: 10 })
-  await page.mouse.down()
-  await page.mouse.move(g.x + g.width * 0.3, g.y + g.height * 0.45, { steps: 40 })
-  await page.mouse.up()
-  await pause(800)
+// The site's own walkthrough, step by step with Next.
+await step('open walkthrough', async () => {
+  await moveTo(page.locator('.walk-btn'))
+  await page.waitForSelector('.tour-next', { timeout: 10000 })
 })
-await step('Clubs', async () => {
-  await moveTo(page.locator('.section-tab').filter({ has: page.getByText('Clubs', { exact: true }) }))
-  await pause(1500)
-})
-await step('Europe', async () => {
-  await moveTo(page.locator('.hero-regions .hero-link', { hasText: 'Europe' }).first())
-  await pause(1800)
-})
-await step('Premier League', async () => {
-  await moveTo(page.locator('.hero-comps .hero-link', { hasText: 'Premier League' }).first())
-  await pause(1200)
-})
-await step('tables', async () => {
-  await page.evaluate(() => document.getElementById('matches')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  await pause(2600)
-  await page.mouse.wheel(0, 500)
-  await pause(1600)
-})
-await step('ask', async () => {
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
-  await pause(1000)
-  await moveTo(page.locator('.ask-btn'))
-  await pause(600)
-  await page.locator('#chat-input').click({ timeout: 5000 })
-  await page.keyboard.type('Who is top of the Bundesliga?', { delay: 70 })
-  await page.keyboard.press('Enter')
-  await pause(2800)
-  await moveTo(page.locator('.chat-close'))
-  await pause(500)
-})
-await step('for you', async () => {
-  await moveTo(page.locator('.section-tab', { hasText: 'For you' }))
-  await pause(1000)
-  await page.locator('.fy-input').click({ timeout: 5000 })
-  await page.keyboard.type('Arsenal', { delay: 110 })
-  await pause(700)
-  await page.keyboard.press('Enter')
-  await pause(600)
-  await page.keyboard.type('Moro', { delay: 120 })
-  await pause(700)
-  await page.keyboard.press('Enter')
-  await pause(1500)
-  await page.mouse.wheel(0, 450)
-  await pause(2200)
-})
-await step('dark mode', async () => {
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
-  await pause(800)
-  const theme = page.locator('.dateline-tools .tool').first()
-  await moveTo(theme)
-  await pause(400)
-  await moveTo(theme)
-  await pause(2200)
-})
+for (let n = 0; n < 20; n++) {
+  const next = page.locator('.tour-next')
+  if (!(await next.count())) break
+  await pause(Number(process.env.STEP_MS ?? 4500))
+  const label = (await next.textContent())?.trim()
+  await step(`step ${n + 1} ${label}`, () => moveTo(next))
+  if (label === 'Finish') break
+}
+await pause(2500)
 console.log(`::notice title=Recording steps::${steps.join('%0A')}`)
 
 await context.close()
@@ -122,7 +75,7 @@ renameSync(`${OUT}/raw/${video}`, `${OUT}/walkthrough.webm`)
 const ff = (...a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a], { stdio: 'inherit' })
 // The recording runs on a GPU-less machine, so the page stalls in places;
 // mpdecimate drops most of the repeated frames and setpts closes the gaps.
-const tighten = 'fps=15,mpdecimate=max=3:hi=768:lo=320:frac=0.5,setpts=N/15/TB'
+const tighten = 'fps=15,mpdecimate=max=1:hi=768:lo=320:frac=0.5,setpts=N/15/TB'
 ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-vf', `${tighten},scale=1280:-2`, '-r', '15', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', `${OUT}/walkthrough.mp4`)
 ff('-ss', '0.8', '-i', `${OUT}/walkthrough.webm`, '-vf', `${tighten},fps=12,scale=900:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=160:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, `${OUT}/walkthrough.gif`)
 console.log(readdirSync(OUT))
